@@ -1,0 +1,407 @@
+import java.util.StringTokenizer;
+import junit.framework.TestCase;
+import java.io.*;
+
+public class SyntaxTest extends TestCase {
+  
+  public SyntaxTest(String name) {
+    super(name);
+  }
+  
+  /** The following 3 check methods create an interpreter object with the
+    * specified String as the program, perform the specified checking and
+    * transformation, and evaluate the transformed program using the appropriate
+    * evaluator.  If the test fails, the method prints a report as to which test 
+    * failed and how many points should be deducted.
+    */
+ 
+  /** The total number of points in the test suite is 60 */
+  private void parseCheck(String name, String answer, String program) {
+    Parser parser = new Parser(new StringReader(program));
+    assertEquals("parse " + name, answer, parser.parseProg().toString());
+  }
+  
+  private void syntaxCheck(String name, String answer, String program) {
+    Parser parser = new Parser(new StringReader(program));
+    assertEquals("parse and check " + name, answer, parser.checkProg().toString());
+  }
+  
+  private void cpsCheck(String name, String answer, String program) {
+    Parser parser = new Parser(new StringReader(program));
+    assertEquals("parse, check, and cps " + name, answer, parser.cpsProg().toString());
+  }
+ 
+  /** Test all 10 prim functions in both modes; 0.2 pts for each test method, 2 pts total*/
+  
+  public void testNumberP() {
+    syntaxCheck("<Number? 0.2pts>", "number?", "number?");
+  }
+
+  public void testFunctionP() {
+    parseCheck("<Function? 0.2pts>", "function?", "function?");
+  }
+
+  public void testEmptyP() {
+    syntaxCheck("<Empty? 0.2pts>", "empty?", "empty?");
+  }
+
+  public void testConsP() {
+    syntaxCheck("<Cons? 0.2pts>", "cons?", "cons?");
+  }
+
+  public void testListP() {
+    syntaxCheck("<List? 0.2pts>", "list?", "list?");
+  }
+
+  public void testCons() {
+    syntaxCheck("<Cons 0.2pts>", "cons", "cons");
+  }
+
+  public void testFirst() {
+    syntaxCheck("<First 0.2pts>", "first", "first");
+  }
+
+  public void testRest() {
+    syntaxCheck("<Rest 0.2pts>", "rest", "rest");
+  }
+
+  public void testArity() {
+    syntaxCheck("<Arity 0.2pts>", "arity", "arity");
+  }
+
+  /* Test all four forms of constant in eval mode; 0.25pts each method, 1 pt total */
+
+  public void testEmpty() {
+    syntaxCheck("<Empty 0.25pts>", "empty", "empty");
+  }
+
+  public void testTrue() {
+    syntaxCheck("<True 0.25pts>", "true", "true");
+  }
+
+  public void testFalse() {
+    syntaxCheck("<False 0.25pts>", "false", "false");
+  }
+
+  public void testInt() {
+    syntaxCheck("<Int 0.25pts>", "17", "17");
+  }
+  
+  
+ /* Test the 7 strict binary operators (2 tests for =) in eval mode, 0.5pts each, 4 pts total 
+   * >, >=, != are excluded; 
+   */
+  public void testBinOpMinus() {
+    syntaxCheck("<10-10 0.5pts>", "(10 - 10)", "10-10");
+  }
+  
+  public void testBinOpPlus() {
+    syntaxCheck("<12+12 0.5pts>", "(12 + 12)", "12+12");
+  }
+
+  public void testBinOpTimes() {
+    syntaxCheck("<6*6 0.5pts>", "(6 * 6)", "6*6");
+  }
+
+  public void testBinOpDivide() {
+    syntaxCheck("<12/5 0.5pts>", "(12 / 5)", "12/5");
+  }
+  
+  public void testBinOpEquals() {
+    syntaxCheck("<false=false 0.5pts>", "(false = false)", "false=false");
+  }
+  
+  public void testBinOpEquals2() {
+    syntaxCheck("<(ref 5)=(ref 5) 0.5pts>", "(ref 5 = ref 5)", "(ref 5)=(ref 5)");
+  }
+  
+  public void testBinOpLessThan() {
+    syntaxCheck("<7<0 0.5pts>", "(7 < 0)", "7<0");
+  }
+
+  public void testBinOpLessEquals() {
+    syntaxCheck("<5<=5 0.5pts>", "(5 <= 5)", "5<=5");
+  }
+
+
+  /** Test the non-strict binary operators & and | in eval mode, 0.5 pts for each test; 3 pts total */
+
+  public void testBinOpAnd1() {
+    parseCheck("<true&false 0.5pts>", "(true & false)", "true&false");
+    syntaxCheck("<true&false 0.5pts>", "if true then asBool(false) else false", "true&false");
+  }
+
+  public void testBinOpAnd2() {
+    parseCheck("<false&(1/0 > 0) 0.5pts>", "(false & ((1 / 0) > 0))", "false & ((1/0) > 0)");
+    syntaxCheck("<false&(1/0 > 0) 0.5pts>", "if false then asBool(((1 / 0) > 0)) else false", "false & ((1/0) > 0)");
+  }
+  
+  public void testBinOpAnd3() throws IOException {
+    parseCheck("<false&(1/0 > 0) 0.5pts>", "(false & (map x to x)(((1 / 0) > 0)))", "false & (map x to x)((1/0) > 0)");
+    syntaxCheck("<false&(1/0 > 0) 0.5pts>", "if false then asBool((map x:1 to x:1)(((1 / 0) > 0))) else false", "false & (map x to x)((1/0) > 0)");
+  }
+  public void testBinOpOr1() {
+    parseCheck("<false|false>", "(false | false)", "false | false");
+    syntaxCheck("<false|false 0.5pts>", "if false then true else asBool(false)", "false | false");
+  }
+
+  public void testBinOpOr2() {
+    syntaxCheck("<true|(1/0 < 0) 0.5pts>", "if true then true else asBool(((1 / 0) < 0))", "true | ((1/0) < 0)");
+  }
+  
+  public void testBinOpOr3() {
+    parseCheck("<true|(1/0 < 0) 0.5pts>", "(true | (map x to x)(((1 / 0) < 0)))", "true | (map x to x)((1/0) < 0)");
+    syntaxCheck("<true|(1/0 < 0) 0.5pts>", "if true then true else asBool((map x:1 to x:1)(((1 / 0) < 0)))", "true | (map x to x)((1/0) < 0)");
+  }
+  
+  /** Test the application of all 10 prim functions in eval mode, 0.2 pts for each test method; 2 pts total */
+  
+  public void testNumberPApp() {
+    syntaxCheck("<Number?(7), 0.2pts>", "number?(7)", "number?(7)");
+    syntaxCheck("<Number?(true), 0.2pts>", "number?(true)", "number?(true)");
+  }
+
+  public void testFunctionPApp() {
+    parseCheck("<Function?(map x to x) 0.2pts>", "function?(map x to x)", "function?(map x to x)");
+    syntaxCheck("<Function?(map x to x) 0.2pts>", "function?(map x:1 to x:1)", "function?(map x to x)");
+    syntaxCheck("<Function?(function?) 0.2pts>", "function?(function?)", "function?(function?)");
+    syntaxCheck("<Function?(7) 0.2pts>", "function?(7)", "function?(7)");
+  }
+
+  public void testEmptyPApp() {
+    syntaxCheck("<Empty?(empty) 0.2pts>", "empty?(empty)", "empty?(empty)");
+  }
+
+  public void testConsPApp() {
+    syntaxCheck("<Cons?(cons(1,empty)) 0.2pts>", "cons?(cons(1, empty))", "cons?(cons(1,empty))");
+  }
+
+  public void testListPApp() {
+    syntaxCheck("<List?(cons(6,empty)) 0.2pts>", "list?(cons(6, empty))", "list?(cons(6,empty))");
+  }
+
+  public void testFirstApp() {
+    syntaxCheck("<First(cons(1,empty)) 0.2pts>", "first(cons(1, empty))", "first(cons(1,empty))");
+  }
+
+  public void testRestApp() {
+    syntaxCheck("<Rest(cons(1,empty) 0.2pts>", "rest(cons(1, empty))", "rest(cons(1,empty))");
+  }
+
+  public void testArityApp() {
+    syntaxCheck("<Arity(map x to x) 0.2pts>", "arity(map x:1 to x:1)", "arity(map x to x)");
+  }
+
+  
+  /* Test 10 top-level syntactic categories in eval mode, 0.5pts pt each, 5 pts total */
+  public void testParenExp() {
+    syntaxCheck("(<exp 0.5pts>)", "17","(17)");
+  }
+  public void testHighOrderApp() {
+    syntaxCheck("<ho-app 0.5pts>", "((map x:1 to x:1)(first))(cons(1, empty))", "((map x to x)(first))(cons(1,empty))");
+  }
+  public void testIf1() {
+    syntaxCheck("<if1 0.5pts>", "if true then 0 else (1 / 0)", "if true then 0 else 1/0");
+  }
+  public void testLet() {
+    syntaxCheck("<let 0.5pts>", "let x:1 := 7; in (x:1 + 10)", "let x:=7; in x+10");
+  }
+  public void testMap0() {
+    syntaxCheck("<map0 0.5pts>", "(map  to 17)()", "(map to 17)()");
+  }
+  public void testMap2() {  
+    syntaxCheck("<map2 0.5pts>", "(map x:1,y:1 to (x:1 + y:1))(2, 2)", "(map x,y to x+y)(2,2)");
+  }
+  public void testCompoundBinOpApp() {
+    syntaxCheck("<binop-app 0.5pts>", "(5 * (3 + 2))", "(5 * (3 + 2))");
+    syntaxCheck("<left-associaive binop app 0.5pts>", "((5 + 3) + 2)", "5 + 3 + 2");
+  }
+  public void testCompondIf1() {
+    syntaxCheck("<comp-if1 0.5pts>", "if false then 1 else if true then 2 else 3", "if false then 1 else if true then 2 else 3");
+  }
+  
+  /* Test three short syntactically correct programs in eval mode, 2 pts each, 6 points total */
+  
+  public void testYFactorial() {
+    syntaxCheck("<YFactorial 2.0pts>",
+                "let Y:1 := map f:1 to let g:2 := map x:2 to f:1(map z:3 to (x:2(x:2))(z:3)); in g:2(g:2); " +
+                 "in let FACT:2 := map f:2 to map n:3 to if (n:3 = 0) then 1 else (n:3 * f:2((n:3 - 1))); " +
+                    "in (Y:1(FACT:2))(6)",
+                "let Y := map f to let g := map x to f(map z to (x(x))(z)); in g(g); " + 
+                "in let FACT := map f to map n to if n = 0 then 1 else n * f(n - 1); " +
+                   "in (Y(FACT))(6)");
+  }
+  public void testAppend() {
+    syntaxCheck("<Append 2.0pts>",
+          "letrec append:1 := map x:2,y:2 to " +
+                               "if (x:2 = empty) then y:2 else cons(first(x:2), append:1(rest(x:2), y:2)); " +
+          "in let s:2 := cons(1, cons(2, cons(3, empty))); " +
+             "in append:1(s:2, s:2)",
+          "letrec append := map x,y to " +
+          "                   if x = empty then y else cons(first(x), append(rest(x), y)); " +
+          "in let s := cons(1,cons(2,cons(3,empty))); " +
+          "   in append(s,s) ");
+         
+  }
+  
+  public void testFactorial() {
+    syntaxCheck("<Factorial 2.0pt>",
+              "letrec fact:1 := map n:2 to if (n:2 = 0) then 1 else (n:2 * fact:1((n:2 - 1))); in fact:1(6)",
+              "letrec fact := map n to if n = 0 then 1 else n * fact(n - 1); in fact(6)");
+  }
+  
+  /* Test two more complex syntactically correct programs in eval mode, 3 pts each, 6 pts total*/
+  public void testFib() {
+    String program = 
+      "letrec  fib := map n to if n <= 1 then 1 else fib(n - 1) + fib(n - 2); " +
+      "    fibhelp := map k, fn, fnm1 to " +
+      "                 if k = 0 then fn " +
+      "                 else fibhelp(k - 1, fn + fnm1, fn); " +
+      "       pair := map x, y to cons(x, cons(y, empty)); " +
+      "       ffib := map n to if n = 0 then 1 else fibhelp(n - 1,1,1); " +
+      "       fibs := map k, l to if 0 <= k then " +
+      "                           fibs(k - 1, cons(pair(k,ffib(k)), l)) " +
+      "                           else l; " +
+      "in fibs(15, empty)";
+    
+    String answer = 
+      "letrec fib:1 := map n:2 to if (n:2 <= 1) then 1 else (fib:1((n:2 - 1)) + fib:1((n:2 - 2))); " +
+         "fibhelp:1 := map k:2,fn:2,fnm1:2 to " +
+                        "if (k:2 = 0) then fn:2 " +
+                        "else fibhelp:1((k:2 - 1), (fn:2 + fnm1:2), fn:2); " +
+            "pair:1 := map x:2,y:2 to cons(x:2, cons(y:2, empty)); " +
+            "ffib:1 := map n:2 to if (n:2 = 0) then 1 else fibhelp:1((n:2 - 1), 1, 1); " +
+            "fibs:1 := map k:2,l:2 to if (0 <= k:2) then " +
+                                 "fibs:1((k:2 - 1), cons(pair:1(k:2, ffib:1(k:2)), l:2)) " +
+                                 "else l:2; " +
+      "in fibs:1(15, empty)";
+    
+     syntaxCheck("<Fib 3pts>",
+              answer,
+              program);
+  }
+    
+
+  
+  /* Test 11 syntactically erroneous programs, 0.1-0.2 pts each, 2 pts total */ 
+
+  
+  public void testRefPApp() {
+    try {
+      syntaxCheck("<ref-app 0.2pts>", "dummy", "ref? 1");
+      fail();
+    }
+    catch(ParseException e) {}
+  } 
+ 
+  public void testGetOp() {
+    try {
+      syntaxCheck("<gets-app 0.2pts>", "(y <- 17)", "y <- 17");
+      fail();
+    }
+    catch(SyntaxException e) { }
+  }
+  
+  public void testDupParms() {
+    try {
+      syntaxCheck("<DupParms 0.2pts>",
+            "dummy",          
+            "map x, x to x");
+      fail();
+    }
+    catch(SyntaxException e) {}
+    catch(Exception e) { fail(); }
+  } 
+   
+  public void testFreeVar() {
+    try {
+      syntaxCheck("<FreeVar 0.2pts>",
+               "dummy",          
+               "map x to let x := 7; in if false then y else x");
+      fail();
+    }
+    catch(SyntaxException e) {}
+    catch(Exception e) { fail(); }
+  }
+  
+  public void testCPS1() throws IOException {
+    String prog = "let x := 5; in 17";
+    Parser in = new Parser(new StringReader(prog));
+    assertEquals("cps1 1.0pt","(map x to x)(let x:1 := 5; in 17)", in.cpsProg().toString());
+  }
+  
+  public void testCPS2() throws IOException {
+    String prog = "let x := first; in x";
+    Parser in = new Parser(new StringReader(prog));
+    assertEquals("cps-2 1.0pt",
+                 "(map x to x)(let x:1 := map x,k to k(first(x)); in x:1)",
+                 in.cpsProg().toString());
+  }
+  
+//  public void testCPS3() throws IOException {
+//    String prog = "let x := map z to 7; y := 12; in x(y)";
+//    Parser in = new Parser(new StringReader(prog));
+//    assertEquals("cps-3 1.0pt",
+//                 "let x:1 := map z:1,:0 to :0(7); in let y:1 := 12; in x:1(y:1, map x to x)",
+//                 in.cpsProg().toString());
+//  }  
+  
+//  public void testCPS4() throws IOException {
+//    String prog = "let x:= (map y to 7)(5); in x";
+//    Parser in = new Parser(new StringReader(prog));
+//    assertEquals("cps-4 1.0pt",
+//                 "(map x:1 to (map x to x)(x:1))(let y:1 := 5; in 7)",
+//                 in.cpsProg().toString());
+//  }
+  
+//  public void testCPS5() throws IOException {
+//    String prog = "let v1 := list?; in v1(empty)";
+//    Parser in = new Parser(new StringReader(prog));
+//    assertEquals("cps-5 1.0pt",
+//                 "let v1:1 := map x,k to k(list?(x)); in v1:1(empty, map x to x)",
+//                 in.cpsProg().toString());
+//  } 
+  
+//  public void testCPS6() throws IOException {
+//    String prog = "let v1 := (map x to x)(list?); in v1(empty)";
+//    Parser in = new Parser(new StringReader(prog));
+//    assertEquals("cps-6 1.0pt",
+//                 "(map v1:1 to v1:1(empty, map x to x))(let x:1 := map x,k to k(list?(x)); in x:1)",
+//                 in.cpsProg().toString());
+//  } 
+  
+//  public void testCPS7() throws IOException {
+//    String prog = "letrec append := map x,y to " +
+//                  "                 if empty?(x) then y else cons(first(x), append(rest(x), y)); " +
+//                  "in append(empty,empty)";
+//    Parser in = new Parser(new StringReader(prog));
+//    assertEquals("cps-7 2.0pt",
+//                 "letrec append:1 := map x:2,y:2,:0 to " +
+//                                      "if empty?(x:2) then :0(y:2) " +
+//                                      "else let :1 := first(x:2); in append:1(rest(x:2), y:2, map :2 to :0(cons(:1, :2))); " +
+//                 "in append:1(empty, empty, map x to x)",
+//                 in.cpsProg().toString());
+//  }  
+
+//  public void testCPS8() throws IOException {
+//    String prog = "let Y := map f to let g := map x to f(map z to (x(x))(z)); in g(g); " + 
+//                   "FACT := map f to map n to if n = 0 then 1 else n * f(n - 1); in (Y(FACT))(6)";
+//    Parser in = new Parser(new StringReader(prog));
+//    assertEquals("cps-8 4.0pt",
+//                 "let Y:1 := map f:1,:0 to " +
+//                              "let g:2 := map x:2,:1 to " +
+//                                           "f:1(map z:3,:2 to x:2(x:2, map :3 to let :4 := z:3; in :3(:4, :2)), :1); " +
+//                              "in g:2(g:2, :0); " +
+//                 "in let FACT:1 := map f:1,:5 to :5(map n:2,:6 to " +
+//                                                     "if (n:2 = 0) then :6(1) " +
+//                                                     "else let :7 := n:2; " +
+//                                                          "in f:1((n:2 - 1), map :8 to :6((:7 * :8)))); " +
+//                 "in Y:1(FACT:1, map :9 to let :10 := 6; in :9(:10, map x to x))",
+//                 in.cpsProg().toString());
+//  }  
+
+  public void testCPS9() throws IOException {
+    cpsCheck("cps-8 1.0pt", "(map x to x)((arity(map x,y,k to k(cons(x, y))) - 1))", "arity(cons)");
+  }  
+
+}

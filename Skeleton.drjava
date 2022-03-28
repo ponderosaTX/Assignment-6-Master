@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<drjava version="drjava-20200303-210720">
+  <project autorefresh="false" build="classes" main="" root="" work="">
+    <createjar file=""/>
+    <source>
+      <file active="true" name="src/Assign4Test.java" package="" timestamp="28-Mar-2022 01:40:38">
+        <select from="0" to="0"/>
+        <scroll column="0" row="0"/>
+      </file>
+      <file name="src/Syntax.java" package="" timestamp="28-Mar-2022 01:32:59">
+        <select from="0" to="0"/>
+        <scroll column="0" row="0"/>
+      </file>
+      <file name="src/Semantics.java" package="" timestamp="28-Mar-2022 01:31:16">
+        <select from="0" to="0"/>
+        <scroll column="0" row="0"/>
+      </file>
+      <file name="src/Assign6Test.java" package="" timestamp="28-Mar-2022 01:30:49">
+        <select from="0" to="0"/>
+        <scroll column="0" row="0"/>
+      </file>
+    </source>
+    <included/>
+    <excluded/>
+    <collapsed/>
+    <classpath/>
+    <breakpoints/>
+    <watches/>
+    <bookmarks/>
+    <preferences/>
+  </project>
+</drjava>
